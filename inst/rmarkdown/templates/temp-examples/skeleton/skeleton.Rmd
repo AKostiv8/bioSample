@@ -1,0 +1,85 @@
+---
+title: "Template Example"
+author: "Anastasiia Kostiv"
+date: "2023-11-21"
+output: output_format
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load package
+```{r}
+library(bioSample)
+```
+
+## Create individual
+```{r}
+ind <- bioSample::Individual$new('Male', 25, 1.75, 70)
+ind$print_individual()
+```
+
+## Update individual
+```{r}
+ind$age <- 23
+ind$sex <- 'Female'
+ind$weight <- 63
+ind$height <- 1.67
+ind$bmi <- ind$calculate_bmi(weight = 63, height = 1.67)
+```
+
+## Create another individual
+```{r}
+ind2 <- bioSample::Individual$new('Male', 21, 1.90, 85)
+ind2$print_individual()
+```
+
+## Create df of individuals
+```{r}
+inds_df <- dplyr::bind_rows(
+  list(
+    ind$get_individual_df(),
+    ind2$get_individual_df()
+  )
+)
+print(inds_df)
+```
+
+## Export individuals as rds or any another format
+```{r}
+saveRDS(inds_df, file = '<path_to_file.>.rds')
+```
+
+## Import individuals in rds or any another format
+```{r}
+imported_df <- readRDS(file = '<path_to_file.>.rds')
+```
+
+## Create objects of imported data
+```{r}
+imported_individual_list <- lapply(1:nrow(imported_df), function(x) {
+  bioSample::Individual$new(
+    imported_df[x,]$sex, 
+    imported_df[x,]$age, 
+    imported_df[x,]$height, 
+    imported_df[x,]$weight
+  )
+})
+```
+
+## Add 2 years to each imported individuals obj 
+```{r}
+lapply(imported_individual_list, function(x) {
+  x$age <- x$get_age_value() + 2
+})
+```
+
+## Get data.frame of each individual in a set and merge into a single one
+```{r}
+imported_ind_df <- lapply(imported_individual_list, function(x) {
+  x$get_individual_df()
+})
+dplyr::bind_rows(imported_ind_df)
+```
